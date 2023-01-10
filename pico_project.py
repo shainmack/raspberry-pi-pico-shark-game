@@ -1,10 +1,12 @@
-
-
-from machine import Pin,PWM,ADC
+from machine import Pin, PWM, ADC
 from math import modf
-import utime, sg90, _thread, tm1637, sys
+import utime
+import sg90
+import _thread
+import tm1637
+import sys
 
-photoresistor_value = machine.ADC(28)
+photoresistor_value = ADC(28)
 
 # Initialize LEDs to on at beginning
 # These LEDs indicate lives remaining
@@ -51,23 +53,26 @@ initial_photo_reading = photoresistor_value.read_u16()
 print("Initial Laser Voltage Reading: ", initial_photo_reading)
 
 # target will recognize a hit when there is a 20% increase in light
-target_reading = initial_photo_reading * 1.2   # potentially need a different percentage based on laser and photores being used
+target_reading = initial_photo_reading * 1.2
+# potentially need a different percentage based on laser and photores being used
 print("Target Goal Lighting: ", target_reading)
-       
+
+
 def scan(servo):
     stepping = servo_speed
     for i in range(45,130, stepping):
-        if (kill_flag):
+        if kill_flag:
             break
         servo.move_to(i)
         utime.sleep_ms(SMOOTH_TIME)
 
     for i in range(130,45, -stepping):
-        if (kill_flag):
+        if kill_flag:
             break
         servo.move_to(i)
         utime.sleep_ms(SMOOTH_TIME)
-        
+
+
 # define a function to execute in the second thread
 def second_thread_func():
     while True:
@@ -75,11 +80,12 @@ def second_thread_func():
         servo = sg90
         stepping = servo_speed
         scan(servo)
-        #print("servo_speed=", servo_speed)
         utime.sleep_ms(100)
 
+
 # Start the second thread
-_thread.start_new_thread(second_thread_func,())
+_thread.start_new_thread(second_thread_func, ())
+
 
 # Function to handle darkening one LED
 def remove_led():
@@ -96,7 +102,8 @@ def remove_led():
             led1_on = False
             lives_left = False
             end_of_game_buzz()
-            
+
+
 # Function to handle when the button is pressed
 def button_press_detected():
     global debounce_counter
@@ -111,9 +118,8 @@ def button_press_detected():
         # set debounce_counter to current utime
         debounce_counter = utime.ticks_ms()
 
-        fire_the_laser()    
-    #else:
-        #print("Not enough utime")
+        fire_the_laser()
+
 
 def fire_the_laser():
     print("FIRE ZEE LASERS!")
@@ -128,11 +134,13 @@ def fire_the_laser():
     else: 
         its_a_miss()
 
+
 def enable_laser():
     global kill_flag
     kill_flag = True
     laser.value(1) 
     utime.sleep_ms(2000) 
+
 
 def disable_laser():
     global kill_flag
@@ -140,21 +148,26 @@ def disable_laser():
     kill_flag = False
     laser.value(0)
 
+
 def check_target():
     global photo_reading
     photo_reading = photoresistor_value.read_u16()   
     print("Laser Voltage Reading: ",photo_reading)
 
+
 def increase_difficulty():
     global servo_speed
     servo_speed = servo_speed + 1
+
 
 def increase_score():
     global score
     score = score + 1
 
+
 def display_score():
     display.number(score)
+
 
 def its_a_hit():
     print("Nice! - A Hit!")
@@ -164,10 +177,12 @@ def its_a_hit():
     display_score()
     print("Score: ", score)
 
+
 def its_a_miss():
     print("Ouch - A Miss!")
     sad_buzz()
     remove_led()
+
 
 def happy_buzz():
     print("Happy buzz!")
@@ -178,6 +193,7 @@ def happy_buzz():
         utime.sleep_ms(500)
     buzzer.duty_u16(0)
 
+
 def sad_buzz():
     print("Sad buzz!")
     
@@ -186,6 +202,7 @@ def sad_buzz():
         buzzer.duty_u16(10000)
         utime.sleep_ms(500)
     buzzer.duty_u16(0)
+
 
 def end_of_game_buzz():
     print("End of game jingle buzz!")
@@ -202,12 +219,10 @@ def end_of_game_buzz():
     buzzer.duty_u16(0)
 
 
-
-
 # Below executes in the main(first) thread.
 while True:
-    if (lives_left):
-      if button.value()==True:
+    if lives_left:
+      if button.value():
         button_press_detected()
     else:
         print("Game Over!")
