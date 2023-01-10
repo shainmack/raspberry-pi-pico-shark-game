@@ -1,5 +1,4 @@
 from machine import Pin, PWM, ADC
-from math import modf
 import utime
 import sg90
 import _thread
@@ -60,13 +59,13 @@ print("Target Goal Lighting: ", target_reading)
 
 def scan(servo):
     stepping = servo_speed
-    for i in range(45,130, stepping):
+    for i in range(45, 130, stepping):
         if kill_flag:
             break
         servo.move_to(i)
         utime.sleep_ms(SMOOTH_TIME)
 
-    for i in range(130,45, -stepping):
+    for i in range(130, 45, -stepping):
         if kill_flag:
             break
         servo.move_to(i)
@@ -78,7 +77,6 @@ def second_thread_func():
     while True:
         # fix for import failing in second thread when it's inside a function
         servo = sg90
-        stepping = servo_speed
         scan(servo)
         utime.sleep_ms(100)
 
@@ -90,13 +88,13 @@ _thread.start_new_thread(second_thread_func, ())
 # Function to handle darkening one LED
 def remove_led():
     global led3_on, led3, led2_on, led2, led1_on, led1, lives_left
-    if(led3_on):
-      led3.value(0)
-      led3_on = False
+    if led3_on:
+        led3.value(0)
+        led3_on = False
     else:
-        if(led2_on):
-          led2.value(0)
-          led2_on = False
+        if led2_on:
+            led2.value(0)
+            led2_on = False
         else:
             led1.value(0)
             led1_on = False
@@ -108,12 +106,12 @@ def remove_led():
 def button_press_detected():
     global debounce_counter
     current_utime = utime.ticks_ms()
-    
+
     # Calculate utime passed since last button press
-    utime_passed = utime.ticks_diff(current_utime,debounce_counter)
+    utime_passed = utime.ticks_diff(current_utime, debounce_counter)
 
     # print("utime passed=" + str(utime_passed))
-    if (utime_passed > DEBOUNCE_utime):
+    if utime_passed > DEBOUNCE_utime:
         print("Button Pressed!")
         # set debounce_counter to current utime
         debounce_counter = utime.ticks_ms()
@@ -125,34 +123,34 @@ def fire_the_laser():
     print("FIRE ZEE LASERS!")
     global servo_speed
 
-    enable_laser()   
-    check_target()     
+    enable_laser()
+    check_target()
     disable_laser()
 
-    if (photo_reading > target_reading):
-        its_a_hit()  
-    else: 
+    if photo_reading > target_reading:
+        its_a_hit()
+    else:
         its_a_miss()
 
 
 def enable_laser():
     global kill_flag
     kill_flag = True
-    laser.value(1) 
-    utime.sleep_ms(2000) 
+    laser.value(1)
+    utime.sleep_ms(2000)
 
 
 def disable_laser():
     global kill_flag
-    utime.sleep_ms(1000)   
+    utime.sleep_ms(1000)
     kill_flag = False
     laser.value(0)
 
 
 def check_target():
     global photo_reading
-    photo_reading = photoresistor_value.read_u16()   
-    print("Laser Voltage Reading: ",photo_reading)
+    photo_reading = photoresistor_value.read_u16()
+    print("Laser Voltage Reading: ", photo_reading)
 
 
 def increase_difficulty():
@@ -186,9 +184,9 @@ def its_a_miss():
 
 def happy_buzz():
     print("Happy buzz!")
-    
+
     buzzer.freq(100000)
-    for count in range(1,3,1):
+    for count in range(1, 3, 1):
         buzzer.duty_u16(20000)
         utime.sleep_ms(500)
     buzzer.duty_u16(0)
@@ -196,9 +194,9 @@ def happy_buzz():
 
 def sad_buzz():
     print("Sad buzz!")
-    
+
     buzzer.freq(1000)
-    for count in range(1,3,1):
+    for count in range(1, 3, 1):
         buzzer.duty_u16(10000)
         utime.sleep_ms(500)
     buzzer.duty_u16(0)
@@ -206,26 +204,25 @@ def sad_buzz():
 
 def end_of_game_buzz():
     print("End of game jingle buzz!")
-    for count in range(1,10,1):
+    for count in range(1, 10, 1):
         buzzer.duty_u16(10000)
         buzzer.freq(1000 * count)
         utime.sleep_ms(100)
-        
-    for count in range(10,1,-1):
+
+    for count in range(10, 1, -1):
         buzzer.duty_u16(10000)
         buzzer.freq(1000 * count)
-        utime.sleep_ms(100)  
-        
+        utime.sleep_ms(100)
+
     buzzer.duty_u16(0)
 
 
 # Below executes in the main(first) thread.
 while True:
     if lives_left:
-      if button.value():
-        button_press_detected()
+        if button.value():
+            button_press_detected()
     else:
         print("Game Over!")
         kill_flag = True
         sys.exit()
-
